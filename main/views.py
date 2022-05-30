@@ -2,6 +2,8 @@ from flask import Blueprint, render_template, request, current_app
 
 from classes.data_manager import DataManager
 
+from classes.exceptions import DataSourceBrokenExeption
+
 
 main_blueprint = Blueprint("main_blueprint", __name__, template_folder="templates")
 
@@ -25,3 +27,9 @@ def search_page():
         posts = data_manager.search(s)
 
     return render_template("post_list.html", posts=posts, s=s)
+
+
+@main_blueprint.errorhandler(DataSourceBrokenExeption)
+def data_source_broken_error(e):
+
+    return "Файл с данными повреждён, обратитесь к администратору"
