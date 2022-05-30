@@ -1,6 +1,6 @@
 import json
 
-from exceptions import DataSourseBrokenExeption
+from classes.exceptions import DataSourceBrokenException
 
 
 class DataManager:
@@ -15,7 +15,7 @@ class DataManager:
                 data = json.load(file)
         except (FileNotFoundError, json.JSONDecodeError):
 
-            raise DataSourseBrokenExeption("Файл с данными повреждён")
+            raise DataSourceBrokenException("Файл с данными повреждён")
 
         return data
 
