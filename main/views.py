@@ -1,11 +1,15 @@
+import logging
+
 from flask import Blueprint, render_template, request, current_app
 
 from classes.data_manager import DataManager
 
-from classes.exceptions import DataSourceBrokenException
+from .exceptions import DataSourceBrokenException
 
 
 main_blueprint = Blueprint("main_blueprint", __name__, template_folder="templates")
+
+logger = logging.getLogger("basic")
 
 
 @main_blueprint.route("/")
@@ -20,6 +24,8 @@ def search_page():
     data_manager = DataManager(path)
 
     s = request.values.get("s", "")
+
+    logger.info(f"Выполняется поиск {s}")
 
     if s is None or s == "":
         posts = data_manager.get_all()

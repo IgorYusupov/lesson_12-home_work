@@ -1,12 +1,12 @@
-import logging
+from flask import Blueprint, request, render_template, current_app
 
-from flask import Blueprint, request, render_template
+from classes.data_manager import DataManager
 
+from .exceptions import OutOfFreeNamesError, PictureFormatNotSupportedError, PictureNotUploadedError
+
+from .upload_manager import UploadManager
 
 loader_blueprint = Blueprint("loader_blueprint", __name__, template_folder="templates")
-
-# Добавили файл, в который пишем логи
-logging.basicConfig(filename="basic.log", level=logging.INFO)
 
 
 @loader_blueprint.route("/post", methods=["GET"])
@@ -18,27 +18,39 @@ def page_form():
 @loader_blueprint.route("/post", methods=["POST"])
 def page_create_posts():
 
+    path = current_app.config.get("POST_PATH")
+    data_manager = DataManager(path)
+    upload_manager = UploadManager()
+
+    # Получаем картинку
     picture = request.files.get("picture", None)
-    content = request.form.get("content", "")
-    posts_handler = PostsHandler("posts.json")
+    content = request.values.get("content", "")
 
-    if not picture or not content:
-        logging.info("Данные не загружены")
-        return "Данные не загружены"
-    try:
-        picture_path = save_uploaded_picture(picture)
-    except PictureWrongTypeError:
-        logging.info("Неверный тип файла")
-        return "Неверный типа файла"
-    except FileNotFoundError:
-        return "Не удалось сохранить файл, путь не найден"
+    # Сохраняем картинку с помощью менеджера загрузок
+    filename_saved = upload_manager.save_with_random_name(picture)
 
-    picture_url = "/"+picture_path
-    post_object = {"pic": picture_url, "content": content}
+    # Получаем путь для браузера клиента
+    web_path = f"/upload/images/{filename_saved}"
 
-    try:
-        posts_handler.add_post(post_object)
-    except DataLayerError:
-        return "Не удалось добавить пост, ошибка записи в список постов"
+    # Создаём данные для записи в файл
+    post = {"pic": web_path, "content": content}
 
-    return render_template("post_uploaded.html", picture_url=picture_url, content=content)
+    # Добавляем данные в файл
+    data_manager.add(post)
+
+    return render_template("post_uploaded.html", pic=web_path, content=content)
+
+
+@loader_blueprint.errorhandler(OutOfFreeNamesError)
+def error_out_of_free_names(e):
+    return "Закончились свободные имена для загрузки картинок. Обратитесь к администратору сайта"
+
+
+@loader_blueprint.errorhandler(PictureFormatNotSupportedError)
+def error_format_not_supported(e):
+    return "Формат картинки не поддерживается, выберите другой"
+
+
+@loader_blueprint.errorhandler(PictureNotUploadedError)
+def error_format_not_supported(e):
+    return "Не удалось загрузить картинку"
