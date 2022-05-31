@@ -16,7 +16,7 @@ def index_page():
 
 @main_blueprint.route("/search/")
 def search_page():
-    path = current_app.config.get("POST-PATH")
+    path = current_app.config.get("POST_PATH")
     data_manager = DataManager(path)
 
     s = request.values.get("s", "")
