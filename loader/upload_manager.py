@@ -29,7 +29,7 @@ class UploadManager:
 
     def is_file_type_valid(self, file_type):
 
-        if file_type.lower("jpg", "jpeg", "gif", "png", "webp", "tiff"):
+        if file_type.lower() in ("jpg", "jpeg", "gif", "png", "webp", "tiff"):
             return True
 
         return False
