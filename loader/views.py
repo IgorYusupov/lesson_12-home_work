@@ -30,7 +30,7 @@ def page_create_posts():
     filename_saved = upload_manager.save_with_random_name(picture)
 
     # Получаем путь для браузера клиента
-    web_path = f"/upload/images/{filename_saved}"
+    web_path = f"/uploads/images/{filename_saved}"
 
     # Создаём данные для записи в файл
     post = {"pic": web_path, "content": content}
